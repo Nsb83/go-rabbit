@@ -21,13 +21,13 @@ type Config struct {
 }
 
 type Rabbit struct {
-	config     Config
+	Config     Config
 	connection *amqp.Connection
 }
 
 func NewRabbit(config Config) *Rabbit {
 	return &Rabbit{
-		config: config,
+		Config: config,
 	}
 }
 
@@ -35,13 +35,13 @@ func (r *Rabbit) Connect() error {
 	if r.connection == nil || r.connection.IsClosed() {
 		con, err := amqp.DialConfig(fmt.Sprintf(
 			"%s://%s:%s@%s:%s/%s",
-			r.config.Schema,
-			r.config.Username,
-			r.config.Password,
-			r.config.Host,
-			r.config.Port,
-			r.config.VHost,
-		), amqp.Config{Properties: amqp.Table{"connection_name": r.config.ConnectionName}})
+			r.Config.Schema,
+			r.Config.Username,
+			r.Config.Password,
+			r.Config.Host,
+			r.Config.Port,
+			r.Config.VHost,
+		), amqp.Config{Properties: amqp.Table{"connection_name": r.Config.ConnectionName}})
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func (r *Rabbit) closedConnectionListener(closed <-chan *amqp.Error) {
 				log.Println("INFO: Reconnected")
 				break
 			}
-			time.Sleep(r.config.ReconnectInterval)
+			time.Sleep(r.Config.ReconnectInterval)
 		}
 	} else {
 		log.Println("INFO: Connection closed normally, will not reconnect")
