@@ -23,10 +23,10 @@ type ConsumerConfig struct {
 type Consumer struct {
 	config          ConsumerConfig
 	Rabbit          *Rabbit
-	MessageHandlers map[string]func(amqp.Delivery) error
+	MessageHandlers map[string]func(Delivery) error
 }
 
-func NewConsumer(config ConsumerConfig, rabbit *Rabbit, handlers map[string]func(amqp.Delivery) error) *Consumer {
+func NewConsumer(config ConsumerConfig, rabbit *Rabbit, handlers map[string]func(Delivery) error) *Consumer {
 	return &Consumer{
 		config:          config,
 		Rabbit:          rabbit,
@@ -123,13 +123,16 @@ func (c *Consumer) consume(channel *amqp.Channel, id int) {
 		return
 	}
 	for msg := range msgs {
+		delivery := Delivery{
+			msg,
+		}
 		handlingF, ok := c.MessageHandlers[msg.RoutingKey]
 		if !ok {
 			log.Println("Routing key absente: " + msg.RoutingKey)
 			msg.Nack(false, false)
 			continue
 		}
-		err = handlingF(msg)
+		err = handlingF(delivery)
 		if err == nil {
 			msg.Ack(false)
 		} else {
