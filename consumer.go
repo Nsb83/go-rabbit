@@ -41,10 +41,10 @@ func (c *Consumer) Start() error {
 	}
 
 	chn, err := con.Channel()
-	go c.closedConnectionListener(chn.NotifyClose(make(chan *amqp.Error)))
 	if err != nil {
 		return err
 	}
+	go c.closedConnectionListener(chn.NotifyClose(make(chan *amqp.Error)))
 
 	if err = chn.ExchangeDeclare(
 		c.config.ExchangeName,
@@ -95,9 +95,9 @@ func (c *Consumer) closedConnectionListener(closed <-chan *amqp.Error) {
 	if err != nil {
 		log.Println("INFO: Closed connection:", err)
 		for {
-			log.Println("INFO: Attempting to reconnect Consumer")
+			log.Println(fmt.Sprintf("INFO: Attempting to reconnect Consumer %v", c.config.ConsumerName))
 			if err := c.Start(); err == nil {
-				log.Println("INFO: Consumer Reconnected")
+				log.Println(fmt.Sprintf("INFO: Consumer %v Reconnected", c.config.ConsumerName))
 				break
 			}
 			time.Sleep(c.config.ReconnectInterval)

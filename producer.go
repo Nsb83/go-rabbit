@@ -2,6 +2,7 @@ package rabbit
 
 import (
 	"context"
+	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 	"os"
@@ -33,14 +34,14 @@ func (producer *Producer) closedConnectionListener(closed <-chan *amqp.Error) {
 	errCh := <-closed
 	if errCh != nil {
 		for {
-			log.Println("INFO: Attempting to reconnect producer")
+			log.Println(fmt.Sprintf("INFO: Attempting to reconnect producer to exchange %v", producer.config.ExchangeName))
 			err := producer.Start()
 			if err == nil {
-				log.Println("INFO: Producer Reconnected")
+				log.Println(fmt.Sprintf("INFO: Producer reconnected to exchange %v", producer.config.ExchangeName))
 				break
 			}
 			if err != nil {
-				log.Println("ERROR: Producer did not start: ", err)
+				log.Println(fmt.Sprintf("INFO: Producer %v did not start: %v", producer.config.ExchangeName, err))
 			}
 			time.Sleep(producer.config.Reconnect.Interval)
 		}
@@ -55,11 +56,11 @@ func (producer *Producer) Start() error {
 	if err != nil {
 		return err
 	}
-	go producer.closedConnectionListener(con.NotifyClose(make(chan *amqp.Error)))
 	producer.channel, err = con.Channel()
 	if err != nil {
 		return err
 	}
+	go producer.closedConnectionListener(producer.channel.NotifyClose(make(chan *amqp.Error)))
 
 	if err = producer.channel.ExchangeDeclare(
 		producer.config.ExchangeName,

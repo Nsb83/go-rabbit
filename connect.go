@@ -72,7 +72,7 @@ func (r *Rabbit) closedConnectionListener(closed <-chan *amqp.Error) {
 		log.Println("INFO: Closed connection:", err)
 		for {
 			log.Println("INFO: Attempting to reconnect")
-			if err := r.Connect(); err == nil {
+			if e := r.Connect(); e == nil {
 				log.Println("INFO: Reconnected")
 				break
 			}
